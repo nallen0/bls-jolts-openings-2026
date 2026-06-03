@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JOLTS April 2026 — Job Openings Dashboard</title>
+  <style>
+    :root {
+      --blue:   #1B6CA8;
+      --teal:   #2CA58D;
+      --orange: #E07A5F;
+      --red:    #C1121F;
+      --green:  #2D6A4F;
+      --bg:     #F8F9FA;
+      --card:   #FFFFFF;
+      --text:   #1F2937;
+      --muted:  #6B7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--blue) 0%, #0D3F66 100%);
+      color: white;
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+    }
+    header .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.9rem;
+      margin-bottom: 0.8rem;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    header p  { margin-top: 0.4rem; opacity: 0.85; font-size: 1rem; }
+
+    /* ── Stat cards ── */
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      padding: 1.8rem 1.5rem 0.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.1rem 1.4rem;
+      flex: 1 1 170px;
+      max-width: 220px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-top: 4px solid var(--blue);
+    }
+    .stat-card.green  { border-top-color: var(--green);  }
+    .stat-card.orange { border-top-color: var(--orange); }
+    .stat-card.red    { border-top-color: var(--red);    }
+    .stat-card.teal   { border-top-color: var(--teal);   }
+    .stat-card .val   { font-size: 1.65rem; font-weight: 700; }
+    .stat-card .lbl   { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+    .stat-card .delta { font-size: 0.85rem; font-weight: 600; margin-top: 0.3rem; }
+    .up   { color: var(--green); }
+    .down { color: var(--red);   }
+
+    /* ── Insight banner ── */
+    .insight-banner {
+      background: #EFF6FF;
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      padding: 1rem 1.3rem;
+      margin: 1.8rem auto 0;
+      max-width: 1060px;
+      font-size: 0.93rem;
+    }
+    .insight-banner strong { color: var(--blue); }
+
+    /* ── Main content ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 4rem;
+    }
+
+    /* ── Section heading ── */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--blue);
+      margin: 2.5rem 0 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid #DBEAFE;
+    }
+
+    /* ── Chart cards ── */
+    .chart-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 1.4rem;
+      margin-bottom: 1.4rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .chart-card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .chart-card .chart-insight {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 0.9rem;
+      max-width: 900px;
+    }
+    .chart-card .chart-insight strong { color: var(--text); }
+    .chart-card img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* ── Two-col grid ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+    @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Key findings list ── */
+    .findings {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 1.5rem 1.8rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 1.4rem;
+    }
+    .findings h3 { font-size: 1rem; margin-bottom: 0.9rem; color: var(--blue); }
+    .findings ul { list-style: none; }
+    .findings li {
+      padding: 0.55rem 0 0.55rem 1.6rem;
+      position: relative;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 0.91rem;
+    }
+    .findings li:last-child { border-bottom: none; }
+    .findings li::before {
+      content: attr(data-icon);
+      position: absolute;
+      left: 0;
+    }
+
+    /* ── QR section ── */
+    .qr-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 1.6rem 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .qr-section img { width: 140px; height: 140px; border-radius: 8px; }
+    .qr-text h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .qr-text p  { font-size: 0.88rem; color: var(--muted); max-width: 420px; }
+    .qr-url     { font-size: 0.82rem; margin-top: 0.5rem; color: var(--blue);
+                  word-break: break-all; font-family: monospace; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid #E5E7EB;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="badge">BLS JOLTS · April 2026 · Seasonally Adjusted</div>
+  <h1>U.S. Job Openings Dashboard</h1>
+  <p>Industry &amp; Regional Analysis &mdash; Table 1 | Bureau of Labor Statistics</p>
+</header>
+
+<!-- ── STAT CARDS ── -->
+<div class="stats">
+  <div class="stat-card green">
+    <div class="val">7.618M</div>
+    <div class="lbl">Total Openings — Apr 2026*</div>
+    <div class="delta up">▲ +731K from March</div>
+  </div>
+  <div class="stat-card">
+    <div class="val">4.6%</div>
+    <div class="lbl">National Opening Rate</div>
+    <div class="delta up">▲ +0.4 pp from March</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="val">7.1%</div>
+    <div class="lbl">Prof &amp; Business Services Rate</div>
+    <div class="delta up">▲ +2.6 pp — largest sector jump</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="val">+439K</div>
+    <div class="lbl">West Region Surge</div>
+    <div class="delta up">▲ Rate: 3.8% → 4.9%</div>
+  </div>
+  <div class="stat-card red">
+    <div class="val">−134K</div>
+    <div class="lbl">Financial Activities Drop</div>
+    <div class="delta down">▼ Rate: 5.2% → 3.9%</div>
+  </div>
+</div>
+
+<!-- ── INSIGHT BANNER ── -->
+<div class="insight-banner">
+  <strong>Key Signal:</strong> After two months of decline (Feb–Mar 2026), job openings rebounded sharply in April 2026 to <strong>7.618 million</strong> — the highest level in this five-period window and above the April 2025 baseline. The rebound was driven almost entirely by <strong>Professional &amp; Business Services</strong> (+668K) and the <strong>West region</strong> (+439K), suggesting concentrated rather than broad-based labor demand recovery. Meanwhile, <strong>Financial Activities</strong> and <strong>Leisure &amp; Hospitality</strong> continued to soften.
+</div>
+
+<main>
+
+  <!-- ── CHART 1 ── -->
+  <div class="section-title">Overall Trend</div>
+  <div class="chart-card">
+    <h3>Total Job Openings: Level &amp; Rate (Apr 2025 → Apr 2026*)</h3>
+    <p class="chart-insight">
+      <strong>What to notice:</strong> Openings dipped in Feb–Mar 2026 before snapping back to 7.618M in April — a 731K single-month jump and the largest one-month increase in this dataset. The opening rate rose from 4.2% to 4.6%, still below its 2024 highs but notable given the prior two-month slide.
+    </p>
+    <img src="chart1_total_trend.png" alt="Total job openings trend" />
+  </div>
+
+  <!-- ── CHART 2 & 3 ── -->
+  <div class="section-title">Sector Breakdown</div>
+  <div class="chart-card">
+    <h3>Month-over-Month Change: March → April 2026* (by sector)</h3>
+    <p class="chart-insight">
+      <strong>What to notice:</strong> Professional &amp; Business Services accounts for the lion's share of the April rebound (+668K), dwarfing all other sectors. Financial Activities shed 134K — the single largest decline &mdash; while Leisure &amp; Hospitality fell 67K continuing its multi-month retreat from its January 2026 peak of 1.119M.
+    </p>
+    <img src="chart2_mom_change.png" alt="Month-over-month change by sector" />
+  </div>
+  <div class="chart-card">
+    <h3>Year-over-Year Comparison: April 2025 vs April 2026*</h3>
+    <p class="chart-insight">
+      <strong>What to notice:</strong> Professional &amp; Business Services surged +376K year-over-year. Conversely, <strong>Information</strong> (-47K, −35% YoY) and <strong>Real Estate</strong> (-67K, −50% YoY) remain well below prior-year levels, suggesting structural softening in tech-adjacent hiring and property markets. Leisure &amp; Hospitality also declined YoY despite a strong Jan 2026.
+    </p>
+    <img src="chart3_yoy.png" alt="Year-over-year comparison" />
+  </div>
+
+  <!-- ── CHART 4 ── -->
+  <div class="section-title">Regional Patterns</div>
+  <div class="chart-card">
+    <h3>Job Openings by U.S. Region (Levels &amp; Rates)</h3>
+    <p class="chart-insight">
+      <strong>What to notice:</strong> The West saw a dramatic one-month surge (+439K, +29.8%), pushing its opening rate from a stable 3.8% (unchanged Jan–Mar 2026) to 4.9% — the highest regional rate in April. The Midwest was the only region to post a month-over-month decline (−11K), and its rate held flat at 4.3%. The South remains the largest absolute contributor to openings at 2.891M.
+    </p>
+    <img src="chart4_regional.png" alt="Regional job openings trend" />
+  </div>
+
+  <!-- ── CHART 5 ── -->
+  <div class="section-title">Opening Rates Heatmap</div>
+  <div class="chart-card">
+    <h3>Job Opening Rates by Industry &amp; Period (%)</h3>
+    <p class="chart-insight">
+      <strong>What to notice:</strong> The heatmap reveals structural patterns: <strong>Health Care &amp; Social Assistance</strong> has persistently high rates (5.1–6.2%), reflecting chronic workforce shortages. Finance &amp; Insurance's March spike to 6.1% was reversed sharply in April (4.3%), indicating volatility rather than a structural shift. The Information sector's year-long decline (4.5% → 3.1%) is clearly visible as a row fading from green to yellow.
+    </p>
+    <img src="chart5_heatmap.png" alt="Opening rates heatmap" />
+  </div>
+
+  <!-- ── CHART 6 ── -->
+  <div class="section-title">Spotlight: Notable April 2026 Movements</div>
+  <div class="chart-card">
+    <h3>Three Anomalies Worth Watching</h3>
+    <p class="chart-insight">
+      <strong>Left:</strong> Prof &amp; Business Services surged to 1.715M — its highest in this window, up 39% from its March trough.
+      <strong>Center:</strong> The West region's rate broke decisively out of its 3.8% plateau.
+      <strong>Right:</strong> Finance &amp; Insurance's rate collapsed 1.8 pp in a single month; Leisure &amp; Hospitality continues its slow fade from a Jan 2026 peak.
+    </p>
+    <img src="chart6_spotlight.png" alt="Spotlight on notable movements" />
+  </div>
+
+  <!-- ── KEY FINDINGS ── -->
+  <div class="section-title">Key Analytical Findings</div>
+  <div class="findings">
+    <h3>Summary for Researchers</h3>
+    <ul>
+      <li data-icon="📈">
+        <strong>April rebound is concentrated, not broad-based.</strong> Of the +731K national gain, roughly 91% (668K) came from Professional &amp; Business Services alone. A broad recovery would see gains distributed more evenly across sectors.
+      </li>
+      <li data-icon="🌐">
+        <strong>West region is the geographic outlier.</strong> A 4.9% opening rate in April vs. 3.8% for the prior three months suggests a sudden acceleration in Western labor demand — potentially driven by tech, clean energy, or professional services hiring clusters in California, Colorado, or Washington.
+      </li>
+      <li data-icon="💼">
+        <strong>Health Care remains structurally tight.</strong> With a 5.8% opening rate and 1.467M openings, Health Care &amp; Social Assistance has maintained consistently elevated demand throughout the period — a signal of ongoing workforce shortages, not cyclical fluctuation.
+      </li>
+      <li data-icon="📉">
+        <strong>Information sector decline is persistent.</strong> From 134K (Apr 2025) to 87K (Apr 2026), a 35% year-over-year contraction. This aligns with broad tech sector hiring freezes and continued AI-driven productivity gains reducing headcount needs.
+      </li>
+      <li data-icon="🏦">
+        <strong>Financial Activities volatility is unusual.</strong> The sector swung from 501K in March to 367K in April (−26.7%), with Finance &amp; Insurance rates moving 6.1% → 4.3%. This magnitude of monthly swing warrants monitoring for data revision in next month's release (marked preliminary).
+      </li>
+      <li data-icon="🏨">
+        <strong>Leisure &amp; Hospitality cooling from its January peak.</strong> Down from 1.119M (Jan 2026) to 815K (Apr 2026), a 27% decline in three months, suggesting seasonal normalization and/or easing post-pandemic labor competition in this sector.
+      </li>
+      <li data-icon="🏛️">
+        <strong>Federal government openings hit a trough in March (78K).</strong> The April rebound to 95K may reflect delayed hiring resumptions after budget or policy-related pauses. The year-over-year decline from 122K to 95K (−22%) is notable given the current policy environment.
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── QR CODE ── -->
+  <div class="qr-section">
+    <img src="qr_code.png" alt="QR code to this dashboard" />
+    <div class="qr-text">
+      <h3>Scan to open this dashboard on your device</h3>
+      <p>Share this interactive report with your research group — no login required. Hosted on GitHub Pages for fast, reliable access.</p>
+      <p class="qr-url" id="page-url"></p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Data: Bureau of Labor Statistics — Job Openings and Labor Turnover Survey (JOLTS), April 2026 (preliminary).
+  Table 1: Job openings levels and rates by industry and region, seasonally adjusted.
+  &nbsp;|&nbsp; Last modified: June 2, 2026.
+  &nbsp;|&nbsp; <em>* Preliminary data subject to revision.</em>
+</footer>
+
+<script>
+  // Populate the URL display dynamically so it always shows the actual page URL
+  const el = document.getElementById('page-url');
+  if (el) el.textContent = window.location.href;
+</script>
+
+</body>
+</html>
